@@ -47,38 +47,57 @@ export interface ICommitteeMember {
   updatedAt?: string
 }
 
-export interface IUser {
-  _id: string // Changed from id to _id
-  name: string
-  email: string
-  password?: string // Optional, as it won't be stored client-side
-  role: "super_admin" | "admin" | "user" | "volunteer" // Added 'volunteer' role
-  assignedEventId?: string | null // For admins assigned to a specific event
-  profile?: {
-    // Added from backend model
-    phone?: string
-    avatar?: string
+// New interface for static content
+export interface IStaticContent {
+  _id?: string // Optional, as it might be created on first save
+  festivalName: string
+  festivalDates: string
+  festivalLocation: string
+  heroSubtitle: string
+  stats: {
+    eventsCount: string
+    eventsLabel: string
+    celebrationDuration: string
+    celebrationLabel: string
+    participantsCount: string
+    participantsLabel: string
   }
-  isActive?: boolean // Added from backend model
-  createdAt?: string
-  updatedAt?: string
-}
-
-export interface IRegistration {
-  _id: string // Changed from id to _id
-  fullName: string
-  email: string
-  phone: string
-  college: string
-  specialRequirements?: string
-  eventId: string // ID of the event they registered for
-  eventName: string // Name of the event for display
-  registrationDate: string // Changed to string for simplicity, backend uses Date
-  totalFee: number
-  paymentStatus?: "pending" | "paid" | "failed" | "refunded" // Added from backend model
-  paymentMethod?: string // Added from backend model
-  transactionId?: string // Added from backend model
-  status?: "registered" | "cancelled" | "attended" | "refunded" // Added from backend model
-  createdAt?: string
-  updatedAt?: string
+  aboutTitle: string
+  aboutDescription: string
+  aboutFeatures: {
+    title: string
+    subtitle: string
+    description: string
+    gradient: string
+  }[]
+  eventsTitle: string
+  registerTitle: string
+  registerDescription: string
+  registerFormTitle: string
+  registerFormDescription: string
+  registerButtonText: string
+  registerDisclaimer: string
+  eventRegistrationFormUrl: string
+  volunteerTitle: string
+  volunteerDescription: string
+  volunteerFormTitle: string
+  volunteerFormDescription: string
+  volunteerButtonText: string
+  volunteerDisclaimer: string
+  volunteerRegistrationFormUrl: string
+  committeeTitle: string
+  committeeDescription: string
+  footerDescription: string
+  footerQuickLinks: string[]
+  footerEventInfo: {
+    date: string
+    location: string
+    phone: string
+  }
+  socialMediaLinks: {
+    instagram: string
+    facebook: string
+    twitter: string
+  }
+  copyrightText: string
 }

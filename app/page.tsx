@@ -19,9 +19,6 @@ import {
   Loader2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
 import { EventCard } from "@/components/event-card"
 import { EventModal } from "@/components/event-modal"
 import { AnimatedSection } from "@/components/animated-section"
@@ -31,6 +28,7 @@ import { useScrollAnimation } from "@/hooks/useScrollAnimation"
 import { useToast } from "@/components/ui/use-toast"
 import apiClient from "@/lib/api"
 import type { IEvent, ICommitteeMember } from "@/lib/types"
+import { useStaticContent } from "@/components/static-content-context"
 
 export default function NuvoriyaFest() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -40,19 +38,12 @@ export default function NuvoriyaFest() {
   const containerRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll()
   const { toast } = useToast()
+  const { content: ctxContent, loading: isLoadingStaticContent } = useStaticContent()
 
   const [events, setEvents] = useState<IEvent[]>([])
   const [committeeMembers, setCommitteeMembers] = useState<ICommitteeMember[]>([])
   const [isLoadingEvents, setIsLoadingEvents] = useState(true)
   const [isLoadingMembers, setIsLoadingMembers] = useState(true)
-  const [isRegistering, setIsRegistering] = useState(false)
-
-  // Registration form states
-  const [fullName, setFullName] = useState("")
-  const [email, setEmail] = useState("")
-  const [phone, setPhone] = useState("")
-  const [college, setCollege] = useState("")
-  const [specialRequirements, setSpecialRequirements] = useState("")
 
   // Smooth parallax transforms with reduced intensity
   const smoothScrollY = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 })
@@ -68,20 +59,16 @@ export default function NuvoriyaFest() {
   }, [])
 
   useEffect(() => {
-    document.title = "Nuvoriya 2025 - Cultural Festival"
-
     const fetchInitialData = async () => {
       setIsLoadingEvents(true)
       setIsLoadingMembers(true)
       try {
-        // Fetch events
         const eventsData = await apiClient.getEvents()
         setEvents(eventsData.data || [])
         setIsLoadingEvents(false)
 
-        // Fetch committee members
         const membersData = await apiClient.getCommitteeMembers()
-        setCommitteeMembers(membersData.data || []) // Corrected: Access .data property
+        setCommitteeMembers(membersData.data || [])
         setIsLoadingMembers(false)
       } catch (error: any) {
         console.error("Failed to fetch initial data:", error)
@@ -98,6 +85,13 @@ export default function NuvoriyaFest() {
     fetchInitialData()
   }, [toast])
 
+  useEffect(() => {
+    if (ctxContent?.festivalName) {
+      document.title = `${ctxContent.festivalName} - Cultural Festivals`
+     
+    }
+  }, [ctxContent?.festivalName])
+
   const eventCategories = ["All", "Dance", "Music", "Drama", "Visual Arts", "Gaming", "Fashion"]
 
   const filteredEvents = activeFilter === "All" ? events : events.filter((event) => event.category === activeFilter)
@@ -110,97 +104,17 @@ export default function NuvoriyaFest() {
     setIsMenuOpen(false)
   }
 
-  const handleRegistrationSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsRegistering(true)
-
-    const registrationData = {
-      fullName,
-      email,
-      phone,
-      college,
-      specialRequirements,
-      eventId: "festival_pass", // Assuming a generic ID for festival pass registration
-      eventName: "Nuvoriya 2025 Festival Pass",
-      totalFee: 449,
-      paymentMethod: "online", // Or "upi", "card" etc.
-    }
-
-    try {
-      await apiClient.registerForEvent(registrationData)
-      toast({
-        title: "Registration Successful",
-        description: "🎉 Welcome to Nuvoriya 2025! Your registration is complete.",
-      })
-      // Clear form
-      setFullName("")
-      setEmail("")
-      setPhone("")
-      setCollege("")
-      setSpecialRequirements("")
-    } catch (error: any) {
-      console.error("Registration failed:", error)
-      toast({
-        title: "Registration Failed",
-        description: error.message || "An error occurred during registration. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsRegistering(false)
-    }
-  }
-
-  // Floating Navigation Component
-  const FloatingNav = () => {
-    const { ref, shouldAnimate } = useScrollAnimation({ delay: 1000, threshold: 0 })
-
+  if (isLoadingStaticContent) {
     return (
-      <motion.nav
-        ref={ref}
-        className="fixed top-8 left-1/2 transform -translate-x-1/2 z-50"
-        initial={{ y: -100, opacity: 0 }}
-        animate={shouldAnimate ? { y: 0, opacity: 1 } : { y: -100, opacity: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-      >
-        <motion.div
-          className="bg-black/20 backdrop-blur-xl border border-white/10 rounded-full px-8 py-4 flex items-center gap-8"
-          whileHover={{ scale: 1.02 }}
-          transition={{ duration: 0.2 }}
-        >
-          {["About", "Events", "Register", "Contact"].map((item, index) => (
-            <motion.button
-              key={item}
-              onClick={() => scrollToSection(item.toLowerCase())}
-              className="text-white/80 hover:text-white font-medium transition-colors duration-300 relative group"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {item}
-              <motion.div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-orange-400 to-yellow-400 group-hover:w-full transition-all duration-300" />
-            </motion.button>
-          ))}
-        </motion.div>
-      </motion.nav>
-    )
-  }
-
-  // Parallax Background Component
-  const ParallaxBackground = ({ children, speed = 0.5 }: { children: React.ReactNode; speed?: number }) => {
-    const ref = useRef(null)
-    const { scrollYProgress } = useScroll({
-      target: ref,
-      offset: ["start end", "end start"],
-    })
-    const y = useTransform(scrollYProgress, [0, 1], ["0%", `${speed * 100}%`])
-
-    return (
-      <div ref={ref} className="relative overflow-hidden">
-        <motion.div style={{ y }} className="absolute inset-0">
-          {children}
-        </motion.div>
+      <div className="flex items-center justify-center min-h-screen bg-black text-white">
+        <Loader2 className="h-10 w-10 animate-spin text-orange-400" />
+        <span className="ml-4 text-xl">Loading festival content...</span>
       </div>
     )
   }
+
+  // Use default content if context content is null (e.g., initial render before fetch completes or on error)
+  const content = ctxContent ;
 
   return (
     <div ref={containerRef} className="min-h-screen bg-black text-white overflow-x-hidden relative">
@@ -221,7 +135,7 @@ export default function NuvoriyaFest() {
         }}
       />
 
-      {/* Floating Navigation */}
+      {/* Floating Navigation Component */}
       <FloatingNav />
 
       {/* Hero Section with Background Image */}
@@ -231,7 +145,7 @@ export default function NuvoriyaFest() {
           <div
             className="w-full h-[120%] bg-cover bg-center bg-no-repeat"
             style={{
-              backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.4)), url('/placeholder.svg?height=1080&width=1920&text=Cultural+Festival+Stage')`,
+              backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.4)), url('/placeholder.svg?height=1080&width=1920')`,
             }}
           />
         </motion.div>
@@ -273,14 +187,14 @@ export default function NuvoriyaFest() {
                     backgroundSize: "200% 200%",
                   }}
                 >
-                  NUVORIYA
+                  {content.festivalName}
                 </h1>
               </AnimatedText>
 
               {/* Subtitle */}
               <AnimatedText delay={1000} duration={1}>
                 <div className="text-xl md:text-2xl font-light text-white/90 mb-8 max-w-3xl mx-auto">
-                  Cultural Festival • September 20-22, 2025 • Coimbatore
+                  {content.heroSubtitle}
                 </div>
               </AnimatedText>
 
@@ -290,9 +204,21 @@ export default function NuvoriyaFest() {
                 className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 max-w-4xl mx-auto"
               >
                 {[
-                  { number: "30+", label: "Events", icon: <Star className="w-6 h-6" /> },
-                  { number: "3 Days", label: "Celebration", icon: <Calendar className="w-6 h-6" /> },
-                  { number: "5000+", label: "Participants", icon: <Users className="w-6 h-6" /> },
+                  {
+                    number: content.stats.eventsCount,
+                    label: content.stats.eventsLabel,
+                    icon: <Star className="w-6 h-6" />,
+                  },
+                  {
+                    number: content.stats.celebrationDuration,
+                    label: content.stats.celebrationLabel,
+                    icon: <Calendar className="w-6 h-6" />,
+                  },
+                  {
+                    number: content.stats.participantsCount,
+                    label: content.stats.participantsLabel,
+                    icon: <Users className="w-6 h-6" />,
+                  },
                 ].map((stat, index) => (
                   <div
                     key={index}
@@ -352,7 +278,7 @@ export default function NuvoriyaFest() {
           <div
             className="w-full h-full bg-cover bg-center bg-no-repeat opacity-20"
             style={{
-              backgroundImage: `url('/placeholder.svg?height=800&width=1600&text=Traditional+Tamil+Art')`,
+              backgroundImage: `url('/placeholder.svg?height=800&width=1600')`,
             }}
           />
         </ParallaxBackground>
@@ -364,7 +290,7 @@ export default function NuvoriyaFest() {
           <AnimatedSection className="text-center mb-20">
             <AnimatedText effect="shimmer" duration={1.2}>
               <h2 className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-400 mb-8">
-                ABOUT NUVORIYA
+                {content.aboutTitle}
               </h2>
             </AnimatedText>
 
@@ -374,38 +300,14 @@ export default function NuvoriyaFest() {
 
             <AnimatedText delay={500} duration={1}>
               <p className="text-xl md:text-2xl text-white/90 leading-relaxed max-w-4xl mx-auto">
-                Nuvoriya is the premier cultural festival celebrating the rich heritage of Tamil arts, cinema, music,
-                and performing arts. Join us for three days of extraordinary performances, competitions, and cultural
-                immersion in the heart of Coimbatore.
+                {content.aboutDescription}
               </p>
             </AnimatedText>
           </AnimatedSection>
 
           {/* Feature Cards */}
           <StaggeredContainer staggerDelay={0.2} className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {[
-              {
-                icon: <Calendar className="w-10 h-10" />,
-                title: "3 DAYS",
-                subtitle: "OF CELEBRATION",
-                description: "Non-stop entertainment with 30+ events across multiple categories",
-                gradient: "from-blue-500 to-purple-500",
-              },
-              {
-                icon: <Award className="w-10 h-10" />,
-                title: "₹1 LAKH+",
-                subtitle: "PRIZE MONEY",
-                description: "Exciting cash prizes and recognition for winners",
-                gradient: "from-orange-500 to-yellow-500",
-              },
-              {
-                icon: <Users className="w-10 h-10" />,
-                title: "5000+",
-                subtitle: "PARTICIPANTS",
-                description: "Students from across Tamil Nadu and beyond",
-                gradient: "from-pink-500 to-red-500",
-              },
-            ].map((item, index) => (
+            {content.aboutFeatures.map((item, index) => (
               <motion.div
                 key={index}
                 className="relative group"
@@ -418,7 +320,10 @@ export default function NuvoriyaFest() {
                   <div
                     className={`text-white mb-6 flex justify-center bg-gradient-to-r ${item.gradient} w-20 h-20 rounded-full items-center mx-auto group-hover:scale-110 transition-transform duration-300`}
                   >
-                    {item.icon}
+                    {/* Icons are hardcoded for now, could be dynamic if needed */}
+                    {index === 0 && <Calendar className="w-10 h-10" />}
+                    {index === 1 && <Award className="w-10 h-10" />}
+                    {index === 2 && <Users className="w-10 h-10" />}
                   </div>
 
                   <h3 className="text-3xl md:text-4xl font-bold text-white mb-3">{item.title}</h3>
@@ -444,7 +349,7 @@ export default function NuvoriyaFest() {
           <div
             className="w-full h-full bg-cover bg-center bg-no-repeat opacity-15"
             style={{
-              backgroundImage: `url('/placeholder.svg?height=800&width=1600&text=Modern+Event+Stage')`,
+              backgroundImage: `url('/placeholder.svg?height=800&width=1600')`,
             }}
           />
         </ParallaxBackground>
@@ -456,7 +361,7 @@ export default function NuvoriyaFest() {
           <AnimatedSection className="text-center mb-20">
             <AnimatedText effect="shimmer" duration={1.2}>
               <h2 className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-400 mb-8">
-                EVENTS & COMPETITIONS
+                {content.eventsTitle}
               </h2>
             </AnimatedText>
 
@@ -536,7 +441,7 @@ export default function NuvoriyaFest() {
           <div
             className="w-full h-full bg-cover bg-center bg-no-repeat opacity-20"
             style={{
-              backgroundImage: `url('/placeholder.svg?height=800&width=1600&text=Elegant+Venue+Interior')`,
+              backgroundImage: `url('/placeholder.svg?height=800&width=1600')`,
             }}
           />
         </ParallaxBackground>
@@ -548,7 +453,7 @@ export default function NuvoriyaFest() {
           <AnimatedSection className="text-center mb-20">
             <AnimatedText effect="shimmer" duration={1.2}>
               <h2 className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-400 mb-8">
-                REGISTER NOW
+                {content.registerTitle}
               </h2>
             </AnimatedText>
 
@@ -557,143 +462,106 @@ export default function NuvoriyaFest() {
             </AnimatedSection>
 
             <AnimatedText delay={500} duration={1}>
-              <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto">
-                Secure your spot at the grandest Tamil cultural celebration
-              </p>
+              <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto">{content.registerDescription}</p>
             </AnimatedText>
           </AnimatedSection>
 
           <AnimatedSection delay={300} className="max-w-2xl mx-auto">
             <motion.div
-              className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 hover:bg-white/15 transition-all duration-300"
+              className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 hover:bg-white/15 transition-all duration-300 text-center"
               whileHover={{ scale: 1.02 }}
               transition={{ duration: 0.2 }}
             >
               <div className="text-center mb-8">
                 <h3 className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-400 mb-4">
-                  FESTIVAL PASS
+                  {content.registerFormTitle}
                 </h3>
-                <p className="text-white/80 text-lg">Complete access to all events and competitions</p>
+                <p className="text-white/80 text-lg">{content.registerFormDescription}</p>
               </div>
 
-              <form onSubmit={handleRegistrationSubmit} className="space-y-6">
-                <StaggeredContainer staggerDelay={0.1} className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="fullName" className="block text-orange-300 font-medium mb-2">
-                      FULL NAME
-                    </Label>
-                    <Input
-                      id="fullName"
-                      placeholder="Enter your name"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      required
-                      className="bg-white/10 border-white/20 text-white focus:border-orange-400 focus:ring-orange-400/20 backdrop-blur-sm rounded-xl"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="email" className="block text-orange-300 font-medium mb-2">
-                      EMAIL
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="your.email@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="bg-white/10 border-white/20 text-white focus:border-orange-400 focus:ring-orange-400/20 backdrop-blur-sm rounded-xl"
-                    />
-                  </div>
-                </StaggeredContainer>
-
-                <StaggeredContainer staggerDelay={0.1} className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="phone" className="block text-orange-300 font-medium mb-2">
-                      PHONE
-                    </Label>
-                    <Input
-                      id="phone"
-                      placeholder="+91 9876543210"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      required
-                      className="bg-white/10 border-white/20 text-white focus:border-orange-400 focus:ring-orange-400/20 backdrop-blur-sm rounded-xl"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="college" className="block text-orange-300 font-medium mb-2">
-                      COLLEGE
-                    </Label>
-                    <Input
-                      id="college"
-                      placeholder="Your college name"
-                      value={college}
-                      onChange={(e) => setCollege(e.target.value)}
-                      required
-                      className="bg-white/10 border-white/20 text-white focus:border-orange-400 focus:ring-orange-400/20 backdrop-blur-sm rounded-xl"
-                    />
-                  </div>
-                </StaggeredContainer>
-
-                <AnimatedSection delay={500}>
-                  <Label htmlFor="specialRequirements" className="block text-orange-300 font-medium mb-2">
-                    SPECIAL REQUIREMENTS
-                  </Label>
-                  <Textarea
-                    id="specialRequirements"
-                    placeholder="Any special requirements..."
-                    value={specialRequirements}
-                    onChange={(e) => setSpecialRequirements(e.target.value)}
-                    className="bg-white/10 border-white/20 text-white focus:border-orange-400 focus:ring-orange-400/20 backdrop-blur-sm rounded-xl"
-                    rows={3}
-                  />
-                </AnimatedSection>
-
-                <AnimatedSection delay={600}>
-                  <div className="bg-gradient-to-r from-orange-500/10 to-yellow-500/10 p-6 rounded-2xl border border-orange-500/20">
-                    <h4 className="font-bold text-white mb-4 text-xl">REGISTRATION FEE</h4>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-white/80">Festival Pass (3 Days)</span>
-                        <span className="text-white font-bold">₹299</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-white/80">Food Coupon</span>
-                        <span className="text-white font-bold">₹150</span>
-                      </div>
-                      <div className="border-t border-orange-500/20 pt-3 flex justify-between items-center text-xl">
-                        <span className="font-bold text-white">TOTAL</span>
-                        <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-400">
-                          ₹449
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </AnimatedSection>
-
-                <AnimatedSection delay={700}>
+              <AnimatedSection delay={700}>
+                <a href={content.eventRegistrationFormUrl} target="_blank" rel="noopener noreferrer">
                   <Button
-                    type="submit"
                     className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-black font-bold py-4 text-lg rounded-2xl relative overflow-hidden group"
-                    disabled={isRegistering}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    {isRegistering ? (
-                      <span className="flex items-center justify-center">
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Registering...
-                      </span>
-                    ) : (
-                      <span className="relative z-10">COMPLETE REGISTRATION - ₹449</span>
-                    )}
+                    <span className="relative z-10">{content.registerButtonText}</span>
                   </Button>
-                </AnimatedSection>
+                </a>
+              </AnimatedSection>
 
-                <AnimatedSection delay={800}>
-                  <p className="text-center text-white/60">Secure payment • 100% refundable until September 15</p>
-                </AnimatedSection>
-              </form>
+              <AnimatedSection delay={800}>
+                <p className="text-center text-white/60 mt-3">{content.registerDisclaimer}</p>
+              </AnimatedSection>
+            </motion.div>
+          </AnimatedSection>
+        </div>
+      </section>
+
+      {/* Volunteer Section */}
+      <section id="volunteer" className="py-32 relative overflow-hidden">
+        {/* Background Image */}
+        <ParallaxBackground speed={0.3}>
+          <div
+            className="w-full h-full bg-cover bg-center bg-no-repeat opacity-15"
+            style={{
+              backgroundImage: `url('/placeholder.svg?height=800&width=1600')`,
+            }}
+          />
+        </ParallaxBackground>
+
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/70 to-black/85 z-10" />
+
+        <div className="container mx-auto px-6 relative z-20">
+          <AnimatedSection className="text-center mb-20">
+            <AnimatedText effect="shimmer" duration={1.2}>
+              <h2 className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-400 mb-8">
+                {content.volunteerTitle}
+              </h2>
+            </AnimatedText>
+
+            <AnimatedSection delay={300} direction="scale">
+              <div className="w-32 h-1 bg-gradient-to-r from-orange-500 to-yellow-500 mx-auto mb-8 rounded-full" />
+            </AnimatedSection>
+
+            <AnimatedText delay={500} duration={1}>
+              <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto">{content.volunteerDescription}</p>
+            </AnimatedText>
+          </AnimatedSection>
+
+          <AnimatedSection delay={300} className="max-w-2xl mx-auto">
+            <motion.div
+              className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 hover:bg-white/15 transition-all duration-300 text-center"
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="text-center mb-8">
+                <Users className="w-20 h-20 text-orange-400 mx-auto mb-6" /> {/* Generic icon */}
+                <h3 className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-400 mb-4">
+                  {content.volunteerFormTitle}
+                </h3>
+                <p className="text-white/80 text-lg">{content.volunteerFormDescription}</p>
+              </div>
+
+              <AnimatedSection delay={700}>
+                <a href={content.volunteerRegistrationFormUrl} target="_blank" rel="noopener noreferrer">
+                  <Button
+                    className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-black font-bold py-4 text-lg rounded-2xl relative overflow-hidden group"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <span className="relative z-10 flex items-center justify-center gap-2">
+                      {content.volunteerButtonText} <Sparkles className="w-4 h-4" />
+                    </span>
+                  </Button>
+                </a>
+              </AnimatedSection>
+
+              <AnimatedSection delay={800}>
+                <p className="text-center text-white/60 mt-3">{content.volunteerDisclaimer}</p>
+              </AnimatedSection>
             </motion.div>
           </AnimatedSection>
         </div>
@@ -708,7 +576,7 @@ export default function NuvoriyaFest() {
           <AnimatedSection className="text-center mb-20">
             <AnimatedText effect="shimmer" duration={1.2}>
               <h2 className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-400 mb-8">
-                CORE COMMITTEE
+                {content.committeeTitle}
               </h2>
             </AnimatedText>
 
@@ -717,9 +585,7 @@ export default function NuvoriyaFest() {
             </AnimatedSection>
 
             <AnimatedText delay={500} duration={1}>
-              <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto">
-                Meet the dedicated team behind Nuvoriya 2025
-              </p>
+              <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto">{content.committeeDescription}</p>
             </AnimatedText>
           </AnimatedSection>
 
@@ -787,34 +653,70 @@ export default function NuvoriyaFest() {
       {/* Footer */}
       <footer className="bg-black text-white py-16 relative border-t border-white/10">
         <div className="container mx-auto px-6 relative z-10">
-          <StaggeredContainer staggerDelay={0.1} className="grid md:grid-cols-4 gap-8">
+          <StaggeredContainer staggerDelay={0.1} className="grid md:grid-cols-3 gap-8">
             <div>
               <AnimatedText effect="shimmer" duration={1.5}>
                 <h3 className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-400 mb-4">
-                  NUVORIYA
+                  {content.festivalName}
                 </h3>
               </AnimatedText>
-              <p className="text-white/70 mb-6 leading-relaxed">
-                The premier Tamil cultural festival celebrating arts, cinema, music, and performing arts.
-              </p>
+              <p className="text-white/70 mb-6 leading-relaxed">{content.footerDescription}</p>
               <div className="flex space-x-4">
-                {[Instagram, Facebook, Twitter].map((Icon, index) => (
+                {content.socialMediaLinks.instagram && (
                   <motion.div
-                    key={index}
                     whileHover={{ scale: 1.2, rotate: 360 }}
                     whileTap={{ scale: 0.9 }}
                     className="w-12 h-12 bg-white/10 hover:bg-gradient-to-r hover:from-orange-500 hover:to-yellow-500 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 border border-white/20 hover:border-orange-400"
                   >
-                    <Icon className="w-5 h-5 text-white" />
+                    <a
+                      href={content.socialMediaLinks.instagram}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Instagram"
+                    >
+                      <Instagram className="w-5 h-5 text-white" />
+                    </a>
                   </motion.div>
-                ))}
+                )}
+                {content.socialMediaLinks.facebook && (
+                  <motion.div
+                    whileHover={{ scale: 1.2, rotate: 360 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="w-12 h-12 bg-white/10 hover:bg-gradient-to-r hover:from-orange-500 hover:to-yellow-500 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 border border-white/20 hover:border-orange-400"
+                  >
+                    <a
+                      href={content.socialMediaLinks.facebook}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Facebook"
+                    >
+                      <Facebook className="w-5 h-5 text-white" />
+                    </a>
+                  </motion.div>
+                )}
+                {content.socialMediaLinks.twitter && (
+                  <motion.div
+                    whileHover={{ scale: 1.2, rotate: 360 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="w-12 h-12 bg-white/10 hover:bg-gradient-to-r hover:from-orange-500 hover:to-yellow-500 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 border border-white/20 hover:border-orange-400"
+                  >
+                    <a
+                      href={content.socialMediaLinks.twitter}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Twitter"
+                    >
+                      <Twitter className="w-5 h-5 text-white" />
+                    </a>
+                  </motion.div>
+                )}
               </div>
             </div>
 
             <div>
               <h4 className="text-xl font-bold text-white mb-4">QUICK LINKS</h4>
               <ul className="space-y-3">
-                {["About", "Events", "Registration", "Contact", "FAQ"].map((link) => (
+                {content.footerQuickLinks.map((link) => (
                   <li key={link}>
                     <button
                       className="text-white/70 hover:text-orange-400 transition-colors duration-300 font-medium relative group"
@@ -833,44 +735,87 @@ export default function NuvoriyaFest() {
               <div className="space-y-4">
                 <motion.div className="flex items-center gap-3" whileHover={{ x: 5 }} transition={{ duration: 0.2 }}>
                   <Calendar className="w-5 h-5 text-orange-400" />
-                  <span className="text-white/70">September 20-22, 2025</span>
+                  <span className="text-white/70">{content.footerEventInfo.date}</span>
                 </motion.div>
                 <motion.div className="flex items-center gap-3" whileHover={{ x: 5 }} transition={{ duration: 0.2 }}>
                   <MapPin className="w-5 h-5 text-orange-400" />
-                  <span className="text-white/70">Coimbatore, Tamil Nadu</span>
+                  <span className="text-white/70">{content.footerEventInfo.location}</span>
                 </motion.div>
                 <motion.div className="flex items-center gap-3" whileHover={{ x: 5 }} transition={{ duration: 0.2 }}>
                   <Phone className="w-5 h-5 text-orange-400" />
-                  <span className="text-white/70">+91 98765 43210</span>
-                </motion.div>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="text-xl font-bold text-white mb-4">NEWSLETTER</h4>
-              <p className="text-white/70 mb-4">Stay updated with latest announcements</p>
-              <div className="space-y-3">
-                <Input
-                  placeholder="Your email"
-                  className="bg-white/10 border-white/20 text-white focus:border-orange-400 backdrop-blur-sm rounded-xl"
-                />
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-black font-bold rounded-xl">
-                    SUBSCRIBE
-                  </Button>
+                  <span className="text-white/70">{content.footerEventInfo.phone}</span>
                 </motion.div>
               </div>
             </div>
           </StaggeredContainer>
 
           <AnimatedSection delay={400} className="border-t border-white/10 mt-12 pt-8 text-center">
-            <p className="text-white/60">© 2025 Nuvoriya. All rights reserved. Made with ❤️ for Tamil culture.</p>
+            <p className="text-white/60">{content.copyrightText}</p>
           </AnimatedSection>
         </div>
       </footer>
 
       {/* Event Modal */}
       <EventModal event={selectedEvent} isOpen={!!selectedEvent} onClose={() => setSelectedEvent(null)} />
+    </div>
+  )
+}
+
+// Floating Navigation Component (moved outside for clarity, but functionally same)
+const FloatingNav = () => {
+  const { ref, shouldAnimate } = useScrollAnimation({ delay: 1000, threshold: 0 })
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId)
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+  }
+
+  return (
+    <motion.nav
+      ref={ref}
+      className="fixed top-8 left-1/2 transform -translate-x-1/2 z-50"
+      initial={{ y: -100, opacity: 0 }}
+      animate={shouldAnimate ? { y: 0, opacity: 1 } : { y: -100, opacity: 0 }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+    >
+      <motion.div
+        className="bg-black/20 backdrop-blur-xl border border-white/10 rounded-full px-8 py-4 flex items-center gap-8"
+        whileHover={{ scale: 1.02 }}
+        transition={{ duration: 0.2 }}
+      >
+        {["About", "Events", "Register", "Volunteer", "Contact"].map((item, index) => (
+          <motion.button
+            key={item}
+            onClick={() => scrollToSection(item.toLowerCase())}
+            className="text-white/80 hover:text-white font-medium transition-colors duration-300 relative group"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {item}
+            <motion.div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-orange-400 to-yellow-400 group-hover:w-full transition-all duration-300" />
+          </motion.button>
+        ))}
+      </motion.div>
+    </motion.nav>
+  )
+}
+
+// Parallax Background Component (moved outside for clarity, but functionally same)
+const ParallaxBackground = ({ children, speed = 0.5 }: { children: React.ReactNode; speed?: number }) => {
+  const ref = useRef(null)
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"],
+  })
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", `${speed * 100}%`])
+
+  return (
+    <div ref={ref} className="relative overflow-hidden">
+      <motion.div style={{ y }} className="absolute inset-0">
+        {children}
+      </motion.div>
     </div>
   )
 }

@@ -1,13 +1,11 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080"
+const API_BASE_URL = process.env.BACKEND_URL || "https://cultural-backend-7gfl.onrender.com"
 
-// Log the resolved base URL to help debug environment variable issues
 console.log("Resolved API_BASE_URL:", API_BASE_URL)
 
 class ApiClient {
   private token: string | null
 
   constructor() {
-    // Client-side only: retrieve token from localStorage
     if (typeof window !== "undefined") {
       this.token = localStorage.getItem("token")
     } else {
@@ -32,7 +30,7 @@ class ApiClient {
 
   async request(endpoint: string, options: RequestInit = {}) {
     const url = `${API_BASE_URL}${endpoint}`
-    console.log("API Request URL:", url) // Log the full URL
+    console.log("API Request URL:", url)
 
     const config: RequestInit = {
       headers: {
@@ -46,16 +44,15 @@ class ApiClient {
       ;(config.headers as Record<string, string>).Authorization = `Bearer ${this.token}`
     }
 
-    // Special handling for FormData (file uploads)
     if (options.body instanceof FormData) {
-      delete (config.headers as Record<string, string>)["Content-Type"] // Let browser set Content-Type for FormData
+      delete (config.headers as Record<string, string>)["Content-Type"]
     }
 
     let response: Response
     try {
       response = await fetch(url, config)
     } catch (error) {
-      console.error("Network error during API request:", error)
+      console.error("Network error during API request: Load failed", error)
       throw new Error("Network error: Could not connect to the API server.")
     }
 
@@ -69,53 +66,23 @@ class ApiClient {
 
   // Auth methods
   async login(email: string, password: string) {
-    return this.request("/api/auth/login", {
+    const data = await this.request("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     })
-  }
-
-  async register(userData: any) {
-    return this.request("/api/auth/register", {
-      method: "POST",
-      body: JSON.stringify(userData),
-    })
+    if (data.token) {
+      this.setToken(data.token)
+    }
+    return data
   }
 
   async getCurrentUser() {
     return this.request("/api/auth/me")
   }
 
-  async getAllUsers() {
-    return this.request("/api/auth/users")
-  }
-
-  async getUserById(id: string) {
-    return this.request(`/api/auth/users/${id}`)
-  }
-
-  async createUser(userData: any) {
-    return this.request("/api/auth/users", {
-      method: "POST",
-      body: JSON.stringify(userData),
-    })
-  }
-
-  async updateUser(id: string, userData: any) {
-    return this.request(`/api/auth/users/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(userData),
-    })
-  }
-
-  async deleteUser(id: string) {
-    return this.request(`/api/auth/users/${id}`, {
-      method: "DELETE",
-    })
-  }
-
   // Event methods
   async getEvents() {
+    console.log("Fetching events...")
     return this.request("/api/events")
   }
 
@@ -145,54 +112,6 @@ class ApiClient {
 
   async getAdminEvents() {
     return this.request("/api/events/admin/events")
-  }
-
-  // Registration methods
-  async registerForEvent(registrationData: any) {
-    return this.request("/api/registrations", {
-      method: "POST",
-      body: JSON.stringify(registrationData),
-    })
-  }
-
-  async getAllRegistrations() {
-    return this.request("/api/registrations")
-  }
-
-  async getRegistrationStats() {
-    return this.request("/api/registrations/stats")
-  }
-
-  async updateRegistrationStatus(id: string, status: string) {
-    return this.request(`/api/registrations/${id}/status`, {
-      method: "PUT",
-      body: JSON.stringify({ status }),
-    })
-  }
-
-  async deleteRegistration(id: string) {
-    return this.request(`/api/registrations/${id}`, {
-      method: "DELETE",
-    })
-  }
-
-  // Volunteer methods
-  async registerVolunteer(volunteerData: any) {
-    return this.request("/api/volunteers/register", {
-      method: "POST",
-      body: JSON.stringify(volunteerData),
-    })
-  }
-
-  async getAllVolunteers() {
-    return this.request("/api/volunteers")
-  }
-
-  async updateVolunteerStatus(id: string, applicationStatus: string) {
-    return this.request(`/api/volunteers/status/${id}`, {
-      method: "PUT",
-      body: JSON.stringify({ applicationStatus }),
-    })
   }
 
   // Committee methods
@@ -231,8 +150,106 @@ class ApiClient {
     return this.request("/api/upload", {
       method: "POST",
       body: formData,
-      headers: {}, // Important: Let browser set Content-Type for FormData
+      headers: {},
     })
+  }
+
+  // Static Content methods (Simulated)
+  async getStaticContent() {
+    // In a real app, this would fetch from your backend database
+    // For now, we'll return a default structure or a stored one
+    try {
+      const response = await this.request("/api/static-content")
+      return response
+    } catch (error: any) {
+      if (error.message.includes("404") || error.message.includes("not found")) {
+        console.warn("Static content not found on backend, returning default.")
+        return this.getDefaultStaticContent()
+      }
+      throw error
+    }
+  }
+
+  async updateStaticContent(contentData: any) {
+    // In a real app, this would send to your backend database
+    // For now, we'll just log and return the updated data
+    console.log("Simulating static content update:", contentData)
+    const response = await this.request("/api/static-content", {
+      method: "PUT",
+      body: JSON.stringify(contentData),
+    })
+    return response
+  }
+
+  // Default static content for initial load or if backend is empty
+  getDefaultStaticContent() {
+    return {
+      festivalName: "VARNAVE'25",
+      festivalDates: "September 12-13, 2025",
+      festivalLocation: "Coimbatore",
+      heroSubtitle: "Cultural Festival • September 12-13, 2025 • Coimbatore",
+      stats: {
+        eventsCount: "20+",
+        eventsLabel: "Events",
+        celebrationDuration: "3 Days",
+        celebrationLabel: "Celebration",
+        participantsCount: "5000+",
+        participantsLabel: "Participants",
+      },
+      aboutTitle: "ABOUT VARNAVE'25",
+      aboutDescription:
+        "Varnave'25 is the premier cultural festival celebrating the rich heritage of Tamil arts, cinema, music, and performing arts. Join us for three days of extraordinary performances, competitions, and cultural immersion in the heart of Coimbatore.",
+      aboutFeatures: [
+        {
+          title: "3 DAYS",
+          subtitle: "OF CELEBRATION",
+          description: "Non-stop entertainment with 30+ events across multiple categories",
+          gradient: "from-blue-500 to-purple-500",
+        },
+        {
+          title: "₹1 LAKH+",
+          subtitle: "PRIZE MONEY",
+          description: "Exciting cash prizes and recognition for winners",
+          gradient: "from-orange-500 to-yellow-500",
+        },
+        {
+          title: "5000+",
+          subtitle: "PARTICIPANTS",
+          description: "Students from across Tamil Nadu and beyond",
+          gradient: "from-pink-500 to-red-500",
+        },
+      ],
+      eventsTitle: "EVENTS & COMPETITIONS",
+      registerTitle: "REGISTER NOW",
+      registerDescription: "Secure your spot at the grandest Tamil cultural celebration",
+      registerFormTitle: "EVENT REGISTRATION",
+      registerFormDescription: "Register for events and competitions via Google Forms.",
+      registerButtonText: "REGISTER VIA GOOGLE FORM",
+      registerDisclaimer: "Click the button to proceed to the Google Form for registration.",
+      eventRegistrationFormUrl: "https://forms.gle/YourEventRegistrationFormLink", // Placeholder
+      volunteerTitle: "BE A VOLUNTEER",
+      volunteerDescription: "Join our dedicated team and help make Varnave'25 a grand success!",
+      volunteerFormTitle: "VOLUNTEER REGISTRATION",
+      volunteerFormDescription: "Contribute to the festival and gain valuable experience.",
+      volunteerButtonText: "APPLY TO VOLUNTEER",
+      volunteerDisclaimer: "Applications close September 1, 2025",
+      volunteerRegistrationFormUrl: "https://forms.gle/JEz272bQkz7HEjks6", // Placeholder
+      committeeTitle: "CORE COMMITTEE",
+      committeeDescription: "Meet the dedicated team behind Varnave'25",
+      footerDescription: "The premier Tamil cultural festival celebrating arts, cinema, music, and performing arts.",
+      footerQuickLinks: ["About", "Events", "Register", "Volunteer", "Contact"],
+      footerEventInfo: {
+        date: "September 12-13, 2025",
+        location: "Coimbatore, Tamil Nadu",
+        phone: "+91 98765 43210",
+      },
+      socialMediaLinks: {
+        instagram: "https://instagram.com",
+        facebook: "https://facebook.com",
+        twitter: "https://twitter.com",
+      },
+      copyrightText: "© 2025 Varnave. All rights reserved.",
+    }
   }
 }
 

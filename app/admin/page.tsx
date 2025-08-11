@@ -11,30 +11,26 @@ import { EventForm } from "@/components/admin/event-form"
 import { EventTable } from "@/components/admin/event-table"
 import { CommitteeMemberForm } from "@/components/admin/committee-member-form"
 import { CommitteeMemberTable } from "@/components/admin/committee-member-table"
-import { UserForm } from "@/components/admin/user-form"
-import { UserTable } from "@/components/admin/user-table"
-import { RegistrationTable } from "@/components/admin/registration-table"
+import { ContentForm } from "@/components/admin/content-form" // New import
 import { useToast } from "@/components/ui/use-toast"
-import { PlusCircle, LogOut, Loader2 } from "lucide-react"
-import type { IEvent, ICommitteeMember, IUser, IRegistration } from "@/lib/types"
-import apiClient from "@/lib/api" // Import the new API client
+import { PlusCircle, LogOut, Loader2, Settings } from "lucide-react" // Added Settings icon
+import type { IEvent, ICommitteeMember, IStaticContent } from "@/lib/types"
+import apiClient from "@/lib/api"
+import { useStaticContent } from "@/components/static-content-context"
 
 export default function AdminDashboard() {
   const { isAuthenticated, logout, user } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
+  const { content: ctxContent, saveContent, loading: contentLoading } = useStaticContent()
 
   const [events, setEvents] = useState<IEvent[]>([])
   const [members, setMembers] = useState<ICommitteeMember[]>([])
-  const [users, setUsers] = useState<IUser[]>([])
-  const [registrations, setRegistrations] = useState<IRegistration[]>([])
 
   const [isEventModalOpen, setIsEventModalOpen] = useState(false)
   const [isMemberModalOpen, setIsMemberModalOpen] = useState(false)
-  const [isUserModalOpen, setIsUserModalOpen] = useState(false)
   const [editingEvent, setEditingEvent] = useState<IEvent | null>(null)
   const [editingMember, setEditingMember] = useState<ICommitteeMember | null>(null)
-  const [editingUser, setEditingUser] = useState<IUser | null>(null)
   const [isLoadingData, setIsLoadingData] = useState(true)
 
   const isAdmin = user?.role === "admin"
@@ -51,23 +47,11 @@ export default function AdminDashboard() {
       try {
         // Fetch events
         const eventsData = isSuperAdmin ? await apiClient.getEvents() : await apiClient.getAdminEvents()
-        setEvents(eventsData.data || eventsData) // Adjust based on API response structure
+        setEvents(eventsData.data || [])
 
         // Fetch committee members
         const membersData = await apiClient.getCommitteeMembers()
-        setMembers(membersData || [])
-
-        // Fetch users (only for super admin)
-        if (isSuperAdmin) {
-          const usersData = await apiClient.getAllUsers()
-          setUsers(usersData.users || [])
-        }
-
-        // Fetch registrations (only for super admin)
-        if (isSuperAdmin) {
-          const registrationsData = await apiClient.getAllRegistrations()
-          setRegistrations(registrationsData.data || [])
-        }
+        setMembers(membersData.data || [])
       } catch (error: any) {
         console.error("Failed to fetch admin data:", error)
         toast({
@@ -75,7 +59,6 @@ export default function AdminDashboard() {
           description: `Failed to load data: ${error.message}`,
           variant: "destructive",
         })
-        // If unauthorized, redirect to login
         if (error.message.includes("Unauthorized") || error.message.includes("Forbidden")) {
           logout()
           router.push("/admin/login")
@@ -166,40 +149,15 @@ export default function AdminDashboard() {
     }
   }
 
-  const handleUserSubmit = async (data: Partial<IUser>) => {
+  const handleStaticContentSubmit = async (data: IStaticContent) => {
     try {
-      if (editingUser) {
-        const response = await apiClient.updateUser(editingUser._id, data)
-        setUsers(users.map((u) => (u._id === editingUser._id ? { ...u, ...response.user } : u)))
-        toast({ title: "Success", description: "User updated successfully." })
-      } else {
-        const response = await apiClient.createUser(data)
-        setUsers([...users, response.user])
-        toast({ title: "Success", description: "User added successfully." })
-      }
-      setIsUserModalOpen(false)
-      setEditingUser(null)
+      await saveContent(data)
+      toast({ title: "Success", description: "Static content updated successfully." })
     } catch (error: any) {
-      console.error("Failed to save user:", error)
+      console.error("Failed to save static content:", error)
       toast({
         title: "Error",
-        description: `Failed to save user: ${error.message}`,
-        variant: "destructive",
-      })
-    }
-  }
-
-  const handleDeleteUser = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this user?")) return
-    try {
-      await apiClient.deleteUser(id)
-      setUsers(users.filter((u) => u._id !== id))
-      toast({ title: "Success", description: "User deleted successfully." })
-    } catch (error: any) {
-      console.error("Failed to delete user:", error)
-      toast({
-        title: "Error",
-        description: `Failed to delete user: ${error.message}`,
+        description: `Failed to save static content: ${error.message}`,
         variant: "destructive",
       })
     }
@@ -213,11 +171,6 @@ export default function AdminDashboard() {
   const handleEditMember = (member: ICommitteeMember) => {
     setEditingMember(member)
     setIsMemberModalOpen(true)
-  }
-
-  const handleEditUser = (user: IUser) => {
-    setEditingUser(user)
-    setIsUserModalOpen(true)
   }
 
   if (!isAuthenticated || isLoadingData) {
@@ -251,7 +204,7 @@ export default function AdminDashboard() {
       </div>
 
       <Tabs defaultValue="events" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-4 bg-white/10 border border-white/20">
+        <TabsList className="grid w-full grid-cols-3 bg-white/10 border border-white/20">
           <TabsTrigger
             value="events"
             className="text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-yellow-500 data-[state=active]:text-black"
@@ -266,18 +219,10 @@ export default function AdminDashboard() {
           </TabsTrigger>
           {isSuperAdmin && (
             <TabsTrigger
-              value="users"
+              value="content"
               className="text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-yellow-500 data-[state=active]:text-black"
             >
-              User Management
-            </TabsTrigger>
-          )}
-          {isSuperAdmin && (
-            <TabsTrigger
-              value="registrations"
-              className="text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-yellow-500 data-[state=active]:text-black"
-            >
-              Registrations
+              <Settings className="mr-2 h-4 w-4" /> Content Settings
             </TabsTrigger>
           )}
         </TabsList>
@@ -349,48 +294,22 @@ export default function AdminDashboard() {
         </TabsContent>
 
         {isSuperAdmin && (
-          <TabsContent value="users" className="mt-8">
-            <Card className="bg-white/10 backdrop-blur-lg border border-white/20 text-white shadow-xl">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-400">
-                  User Management
-                </CardTitle>
-                <Dialog open={isUserModalOpen} onOpenChange={setIsUserModalOpen}>
-                  <DialogTrigger asChild>
-                    <Button
-                      onClick={() => setEditingUser(null)}
-                      className="bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-black"
-                    >
-                      <PlusCircle className="mr-2 h-4 w-4" /> Add User
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[800px] bg-white/10 backdrop-blur-lg border border-white/20 text-white">
-                    <DialogHeader>
-                      <DialogTitle className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-400">
-                        {editingUser ? "Edit User" : "Add New User"}
-                      </DialogTitle>
-                    </DialogHeader>
-                    <UserForm onSubmit={handleUserSubmit} initialData={editingUser} events={events} />
-                  </DialogContent>
-                </Dialog>
-              </CardHeader>
-              <CardContent>
-                <UserTable users={users} onEdit={handleEditUser} onDelete={handleDeleteUser} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
-
-        {isSuperAdmin && (
-          <TabsContent value="registrations" className="mt-8">
+          <TabsContent value="content" className="mt-8">
             <Card className="bg-white/10 backdrop-blur-lg border border-white/20 text-white shadow-xl">
               <CardHeader>
                 <CardTitle className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-400">
-                  Registrations
+                  Website Content Settings
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <RegistrationTable registrations={registrations} events={events} />
+                {!contentLoading && ctxContent ? (
+                  <ContentForm onSubmit={handleStaticContentSubmit} initialData={ctxContent} />
+                ) : (
+                  <div className="flex justify-center items-center h-64">
+                    <Loader2 className="h-10 w-10 animate-spin text-orange-400" />
+                    <span className="ml-4 text-xl text-white/80">Loading content settings...</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
