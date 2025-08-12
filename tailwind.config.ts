@@ -129,6 +129,7 @@ const config: Config = {
         "cultural-pattern": "url('/placeholder.svg?height=800&width=1600')",
         "stage-lights": "url('/placeholder.svg?height=600&width=1200')",
         "traditional-art": "url('/placeholder.svg?height=800&width=1600')",
+        "waves": "url('/bg-waves.png')",
       },
     },
   },
