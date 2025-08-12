@@ -145,7 +145,7 @@ export default function NuvoriyaFest() {
           <div
             className="w-full h-[120%] bg-cover bg-center bg-no-repeat"
             style={{
-              backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.4)), url('/placeholder.svg?height=1080&width=1920')`,
+              backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.4)), url('/bg-waves.png?height=1080&width=1920')`,
             }}
           />
         </motion.div>
@@ -181,15 +181,13 @@ export default function NuvoriyaFest() {
             <div className="mb-16">
               {/* Enhanced Title */}
               <AnimatedText effect="shimmer" delay={500} duration={1.5}>
-                <h1
-                  className="text-7xl md:text-8xl lg:text-9xl font-light text-transparent bg-clip-text bg-gradient-to-r from-white via-orange-200 to-yellow-200 tracking-wider mb-8 relative"
-                  style={{
-                    backgroundSize: "200% 200%",
-                  }}
-                >
-                  {content.festivalName}
-                </h1>
-              </AnimatedText>
+  <img 
+    src="/placeholder.png" 
+    alt="Varnave Logo" 
+    className="w-[300px] md:w-[400px] mx-auto mb-8" 
+  />
+</AnimatedText>
+
 
               {/* Subtitle */}
               <AnimatedText delay={1000} duration={1}>
