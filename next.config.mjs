@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+ // basePath: '/varnave',
+ // assetPrefix: '/varnave/',
   eslint: {
     ignoreDuringBuilds: true,
   },
