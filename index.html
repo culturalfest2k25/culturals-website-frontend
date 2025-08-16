@@ -558,8 +558,8 @@
         </div>
     </div>
 
-    <div class="relative">
-        <div id="about-section" class="gradient-background sticky top-0 h-screen flex flex-col items-center justify-center">
+    <div id="maincontent" class="relative">
+        <div id="about-section" class="gradient-background sticky top-0 h-screen flex flex-col items-center justify-center" style="scroll-behavior: smooth;">
             <!-- <img src="./asserts/backgrounds/about gradientt.png" alt="" class="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none" style="scale: 1.5;"> -->
             <div class="relative z-10 text-center">
                 <h2 class="text-6xl font-bold mb-6" style="color: white;">
@@ -571,7 +571,7 @@
             </div>
         </div>
 
-        <div class="sticky top-0 h-screen flex flex-col md:flex-row gap-8 md:gap-20 items-center justify-center bg-white p-4">
+        <div style="scroll-behavior: smooth;" class="sticky top-0 h-screen flex flex-col md:flex-row gap-8 md:gap-20 items-center justify-center bg-white p-4">
             <img src="./asserts/imgs/jit_drone_view.png" alt="JIT Drone View" class="absolute inset-0 h-full w-full object-cover shadow-2xl rounded-lg">
             <div class="absolute inset-0 w-full h-full" style="width: 100%; overflow-x: hidden;">
                 <div class="s__rays" width="100%">
@@ -737,7 +737,7 @@
 
         </div>
         
-        <div class="sticky top-0 h-screen flex flex-col items-center gap-10 justify-center gradient-bg-2 text-white">
+        <div style="scroll-behavior: smooth;" class="sticky top-0 h-screen flex flex-col items-center gap-10 justify-center gradient-bg-2 text-white">
             
             <div id="posterContainer" class="flex flex-col lg:w-1/2 flex justify-center" style="width: 100%;">
                 <div class="text-center">
@@ -799,9 +799,9 @@
 
     </div>
 
-    <div style="height: 400px; object-fit: fill;"> 
+    <!-- <div style="height: 400px; object-fit: fill;"> 
         
-    </div>
+    </div> -->
 
     <footer id="site-footer" class="bg-gray-900 text-gray-300 relative overflow-hidden" style="height: fit-content;">
         <img src="./asserts/backgrounds/footer-01.png" alt="Footer background" class="absolute inset-0 h-full w-full object-cover opacity-60 z-0" style="object-fit: cover;">
@@ -890,38 +890,6 @@
     <script type="module">
         
         import { animate } from 'https://cdn.jsdelivr.net/npm/animejs/+esm';
-
-        document.addEventListener('DOMContentLoaded', () => {
-
-            // Wrap each letter of the heading in a <span> tag.
-            // This allows us to animate each letter individually.
-            const textWrapper = document.querySelector('#about-heading');
-            textWrapper.innerHTML = textWrapper.textContent.replace(/\S/g, "<span class='letter'>$&</span>");
-
-            // Create a timeline to sequence the animations
-            anime.timeline({
-                easing: 'easeOutExpo', // A smooth easing for a modern feel
-            })
-            .add({
-                targets: '#aboutjit-image',
-                translateX: [-50, 0], // Slide in from the left
-                opacity: [0, 1],
-                duration: 1200,
-            })
-            .add({
-                targets: '#about-heading .letter',
-                translateY: [40, 0], // Move up from below
-                opacity: [0, 1],
-                duration: 800,
-                delay: anime.stagger(40), // Stagger each letter's animation
-            }, '-=800') // Overlap with the previous animation by 800ms
-            .add({
-                targets: '#about-paragraph',
-                translateY: [20, 0], // Slide up slightly
-                opacity: [0, 1],
-                duration: 1000,
-            }, '-=1000'); // Overlap with the start of the text animation
-        });
 
         let scrolled = 'false';
         function scrolldown() {
