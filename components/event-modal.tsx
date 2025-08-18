@@ -20,7 +20,13 @@ interface Event {
   duration: string
   posterImage: string
   rules: string[]
+  coordinator?: {
+    name: string
+    phone: string
+    email: string
+  }
 }
+
 
 interface EventModalProps {
   event: Event | null
@@ -148,7 +154,30 @@ export function EventModal({ event, isOpen, onClose }: EventModalProps) {
                     </div>
                     <div className="text-gray-900 font-bold">{event.participants}</div>
                   </div>
-                </div>
+<div className="bg-yellow-50 rounded-xl p-5 border border-yellow-300 mt-4 max-w-md mx-auto shadow-sm">
+  <h3 className="text-lg font-semibold text-yellow-900 mb-4">Student Coordinator</h3>
+  <div className="space-y-3 text-yellow-900">
+    <div className="flex items-center gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5.121 17.804A7.969 7.969 0 0112 15a7.969 7.969 0 016.879 2.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+      <span><strong>Name:</strong> John Doe</span>
+    </div>
+    <div className="flex items-center gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 5h2l3.6 7.59-1.35 2.45a1 1 0 00.27 1.36l5 4a1 1 0 001.45-.42L17 13h2a2 2 0 002-2V7a2 2 0 00-2-2h-5" />
+      </svg>
+      <span><strong>Phone:</strong> +1 234 567 8901</span>
+    </div>
+    <div className="flex items-center gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16 12H8m0 0l-4 4m4-4l4-4m4 8v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4a2 2 0 012-2h8a2 2 0 012 2z" />
+      </svg>
+      <span><strong>Email:</strong> john.doe@example.com</span>
+    </div>
+  </div>
+</div>
+</div>
 
                 {/* Right Column - Description and Rules */}
                 <div className="space-y-6">
@@ -168,6 +197,9 @@ export function EventModal({ event, isOpen, onClose }: EventModalProps) {
                       ))}
                     </ul>
                   </div>
+
+
+
 
                   {/* Registration Button */}
                   <div className="pt-6">
