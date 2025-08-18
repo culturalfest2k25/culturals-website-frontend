@@ -148,6 +148,8 @@ export default function NuvoriyaFest() {
               backgroundImage: `url('/bg-waves.png?height=1080&width=1920')`,
             }}
           />
+
+          
         </motion.div>
 
         {/* Static Animated Overlay Elements */}
@@ -176,58 +178,39 @@ export default function NuvoriyaFest() {
         </div>
 
         {/* Main Content */}
-        <div className="relative z-20 text-center px-6 max-w-6xl mx-auto">
+        <div className="relative z-20 text-center px-6 w-full max-w-none">
+
           <AnimatedSection delay={300} duration={1.2}>
             <div className="mb-16">
               {/* Enhanced Title */}
               <AnimatedText effect="shimmer" delay={200} duration={1}>
+<img
+  src="/JIT-Logo.png"
+  alt="College Logo"
+  className="
+    absolute top-4 left-4
+    w-28 sm:w-40 md:w-56 lg:w-64
+    h-auto z-50
+  "
+/>
+
   <img 
     src="/placeholder.png" 
     alt="Varnave Logo" 
-    className="w-[1000px] md:w-[1000px] mx-auto mb-8" 
+    className="w-[100px] md:w-[1000px] mx-auto mb-8" 
   />
 </AnimatedText>
+{/* Subtitle */}
+{/* Statistics */}
+<div className="col-span-full w-full flex justify-center relative -top-[32px] md:-top-[40px]">
+  <div className="min-w-[320px] md:min-w-[400px] bg-white/20 backdrop-blur-md px-8 py-3 rounded-full shadow-lg border border-white/30 text-center whitespace-nowrap">
+    <span className="text-xl md:text-2xl font-bold tracking-wide text-white drop-shadow-md">
+      September 12 & 13
+    </span>
+  </div>
+</div>
 
 
-              {/* Subtitle */}
-              <AnimatedText delay={1000} duration={1}>
-                <div className="text-xl md:text-2xl font-light text-white/90 mb-8 max-w-3xl mx-auto">
-                  {content.heroSubtitle}
-                </div>
-              </AnimatedText>
-
-              {/* Statistics */}
-              <StaggeredContainer
-                staggerDelay={0.2}
-                className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 max-w-4xl mx-auto"
-              >
-                {[
-                  {
-                    number: content.stats.eventsCount,
-                    label: content.stats.eventsLabel,
-                    icon: <Star className="w-6 h-6" />,
-                  },
-                  {
-                    number: content.stats.celebrationDuration,
-                    label: content.stats.celebrationLabel,
-                    icon: <Calendar className="w-6 h-6" />,
-                  },
-                  {
-                    number: content.stats.participantsCount,
-                    label: content.stats.participantsLabel,
-                    icon: <Users className="w-6 h-6" />,
-                  },
-                ].map((stat, index) => (
-                  <div
-                    key={index}
-                    className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition-all duration-300"
-                  >
-                    <div className="text-orange-400 mb-3 flex justify-center">{stat.icon}</div>
-                    <div className="text-3xl font-bold text-white mb-2">{stat.number}</div>
-                    <div className="text-white/80">{stat.label}</div>
-                  </div>
-                ))}
-              </StaggeredContainer>
 
               {/* CTA Buttons */}
               <AnimatedSection delay={2000} direction="up">
@@ -258,6 +241,7 @@ export default function NuvoriyaFest() {
           </AnimatedSection>
         </div>
 
+
         {/* Scroll Indicator */}
         <AnimatedSection delay={3000} className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20">
           <motion.div
@@ -274,15 +258,22 @@ export default function NuvoriyaFest() {
         {/* Background Image */}
         <ParallaxBackground speed={0.3}>
           <div
-            className="w-full h-full bg-cover bg-center bg-no-repeat opacity-20"
+            className="w-full h-[800px] bg-cover bg-center bg-no-repeat opacity-20"
             style={{
-              backgroundImage: `url('/placeholder.svg?height=800&width=1600')`,
+              backgroundImage: `url('/about-section.jpg')`,
             }}
           />
         </ParallaxBackground>
 
         {/* Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/80 z-10" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/80 z-10" />
+
+  
+
+
+
+
+
 
         <div className="container mx-auto px-6 relative z-20">
           <AnimatedSection className="text-center mb-20">
@@ -347,13 +338,15 @@ export default function NuvoriyaFest() {
           <div
             className="w-full h-full bg-cover bg-center bg-no-repeat opacity-15"
             style={{
-              backgroundImage: `url('/placeholder.svg?height=800&width=1600')`,
+              backgroundImage: `url('/about-section.jpg?height=800&width=1600')`,
             }}
           />
         </ParallaxBackground>
 
         {/* Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/70 to-black/90 z-10" />
+           <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/70 to-black/90 z-10" />
+
+
 
         <div className="container mx-auto px-6 relative z-20">
           <AnimatedSection className="text-center mb-20">
@@ -445,7 +438,7 @@ export default function NuvoriyaFest() {
         </ParallaxBackground>
 
         {/* Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/70 to-black/85 z-10" />
+       <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/70 to-black/85 z-10" />
 
         <div className="container mx-auto px-6 relative z-20">
           <AnimatedSection className="text-center mb-20">
@@ -510,7 +503,7 @@ export default function NuvoriyaFest() {
         </ParallaxBackground>
 
         {/* Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/70 to-black/85 z-10" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/70 to-black/85 z-10" />
 
         <div className="container mx-auto px-6 relative z-20">
           <AnimatedSection className="text-center mb-20">
@@ -568,7 +561,7 @@ export default function NuvoriyaFest() {
       {/* Core Committee Section */}
       <section id="contact" className="py-32 relative overflow-hidden">
         {/* Background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-gray-900 to-black z-10" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black via-gray-900 to-black z-10" />
 
         <div className="container mx-auto px-6 relative z-20">
           <AnimatedSection className="text-center mb-20">
