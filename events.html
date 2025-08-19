@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
 
     <style>
         @font-face {
@@ -348,7 +351,7 @@
     <div id="page-info-events" class="relative pt-52 pb-16 flex flex-col items-center justify-center text-center">
         <img src="./asserts/backgrounds/varnave bg web-01.png" alt="Abstract background" style="z-index: -1;" class="fixed inset-0 w-full h-full object-cover pointer-events-none">
         
-        <h1 class="text-4xl md:text-5xl font-bold text-gray-900">Cultural Events</h1>
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-900" style="font-family: BaseNeueTrial;">Cultural Events</h1>
         <p class="mt-4 text-gray-700 max-w-2xl px-4">Discover the exciting lineup of performances and activities at our cultural fest.</p>
     </div>
 
@@ -392,7 +395,7 @@
             <h2 id="modalTitle" class="text-3xl font-bold text-gray-900 mb-4">Event Title</h2>
             <div class="space-y-2 text-gray-600 mb-6">
                 <p><strong class="font-semibold text-gray-800">Date & Time:</strong> <span id="modalDateTime"></span></p>
-                <p><strong class="font-semibold text-gray-800">Venue:</strong> <span id="modalVenue"></span></p>
+                <!-- <p><strong class="font-semibold text-gray-800">Venue:</strong> <span id="modalVenue"></span></p> -->
                 <p><strong class="font-semibold text-gray-800">Prize:</strong> <span id="modalPrize"></span></p>
                 <p><strong class="font-semibold text-gray-800">Participants:</strong> <span id="modalParticipants"></span></p>
             </div>
@@ -400,7 +403,22 @@
             
             <h3 class="text-xl font-bold text-gray-800 mb-3">Rules</h3>
             <ul id="modalRules" class="list-disc list-inside space-y-2 text-gray-700">
-                </ul>
+            </ul>
+
+            <br>
+
+            <!-- Coordinator Information -->
+            <div id="modalCoordinator" class="bg-emerald-50 rounded-lg p-4 mb-6 border-l-4 border-emerald-500">
+                <h3 class="text-lg font-semibold text-emerald-800 mb-2 flex items-center gap-2">
+                    <ion-icon name="person-outline"></ion-icon>
+                    Student Coordinator
+                </h3>
+                <div class="space-y-1 text-gray-700">
+                    <p><strong class="text-gray-800">Name:</strong> <span id="modalCoordinatorName"></span></p>
+                    <p><strong class="text-gray-800">Phone:</strong> <span id="modalCoordinatorPhone"></span></p>
+                    <p><strong class="text-gray-800">Email:</strong> <span id="modalCoordinatorEmail"></span></p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -493,10 +511,15 @@
 
             document.getElementById('modalTitle').textContent = event.title;
             document.getElementById('modalDateTime').textContent = `${event.date} • ${event.time}`;
-            document.getElementById('modalVenue').textContent = event.venue;
+            // document.getElementById('modalVenue').textContent = event.venue;
             document.getElementById('modalPrize').textContent = event.prize;
             document.getElementById('modalParticipants').textContent = event.participants;
             document.getElementById('modalFullDesc').textContent = event.fullDescription;
+            
+            // Populate coordinator information
+            document.getElementById('modalCoordinatorName').textContent = event.StudentCoordinatorName || 'Not provided';
+            document.getElementById('modalCoordinatorPhone').textContent = event.StudentCoordinatorPhone || 'Not provided';
+            document.getElementById('modalCoordinatorEmail').textContent = event.StudentCoordinatorEmail || 'Not provided';
             
             const rulesList = document.getElementById('modalRules');
             rulesList.innerHTML = ''; 
@@ -562,24 +585,24 @@
                     const categoryKey = isOnStage ? 'eventplaceholder1' : 'eventplaceholder2';
                     
                     const card = `
+
                         <div class="member-item" data-category="${categoryKey}">
-                            <div class="member-card group rounded-xl border border-emerald-100 bg-white shadow hover:shadow-lg transition overflow-hidden flex flex-col h-full">
-                                <div class="h-40 w-full overflow-hidden">
-                                    <img class="w-full h-full object-cover" src="${e.posterImage}" alt="${e.title}" loading="lazy">
+                            <div class="member-card group rounded-2xl border border-emerald-100 bg-white shadow-md hover:shadow-xl transition-all overflow-hidden flex flex-col h-full">
+                                <div class="w-full aspect-[3/4] bg-gray-100 flex items-center justify-center overflow-hidden">
+                                    <img class="w-full h-full object-fill transition-transform duration-300 group-hover:scale-105" src="${e.posterImage}" alt="${e.title}" loading="lazy">
                                 </div>
-                                <div class="p-4 flex flex-col flex-grow">
-                                    <h4 class="text-lg font-semibold text-gray-900">${e.title}</h4>
-                                    <p class="mt-1 text-emerald-700 flex items-center gap-2 text-sm">
+                                <div class="p-5 flex flex-col flex-grow">
+                                    <h4 class="text-xl font-bold text-gray-900 mb-1">${e.title}</h4>
+                                    <p class="text-emerald-700 flex items-center gap-2 text-sm mb-1">
                                         <ion-icon name="calendar-outline"></ion-icon>
                                         <span>${e.date} • ${e.time}</span>
                                     </p>
-                                    <p class="mt-1 text-gray-700 flex items-center gap-2 text-sm">
+                                    <!-- <p class="text-gray-700 flex items-center gap-2 text-sm mb-2">
                                         <ion-icon name="location-outline"></ion-icon>
                                         <span>${e.venue}</span>
-                                    </p>
-                                    <p class="mt-3 text-sm text-gray-600">${e.description || ''}</p>
-                                    <div class="mt-auto pt-4">
-                                        <button onclick="showModal('${e._id}')" aria-label="Details for ${e.title}" class="inline-flex items-center gap-2 text-emerald-700 hover:text-emerald-900 font-medium transition-all duration-300 hover:gap-3">
+                                    </p> -->
+                                    <div class="mt-auto pt-3">
+                                        <button onclick="showModal('${e._id}')" aria-label="Details for ${e.title}" class="inline-flex items-center gap-2 text-emerald-700 hover:text-emerald-900 font-semibold transition-all duration-300 hover:gap-3">
                                             <span>Details</span>
                                             <ion-icon name="open-outline"></ion-icon>
                                         </button>
@@ -594,6 +617,7 @@
                     } else {
                         offStageContainer.innerHTML += card;
                     }
+
                     allMembersContainer.innerHTML += card;
                 }
 
